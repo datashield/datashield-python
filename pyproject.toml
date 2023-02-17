@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "datashield"
+version = "0.1.0"
+description = "DataSHIELD Client Interface in Python."
+authors = ["Yannick Marcon <yannick.marcon@obiba.org>"]
+maintainers = ["Yannick Marcon <yannick.marcon@obiba.org>"]
+license = "LGPL"
+readme = "README.md"
+homepage = "https://www.datashield.org"
+repository = "https://github.com/datashield/datashield-python"
+documentation = "https://github.com/datashield/datashield-python"
+
+[tool.poetry.urls]
+"Bug Tracker" = "https://github.com/datashield/datashield-python/issues"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
