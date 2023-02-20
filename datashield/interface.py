@@ -32,7 +32,11 @@ class DSConnection:
   """
   Connection class to a DataSHIELD server.
   """
-  
+
+  #
+  # Content listing
+  #
+
   def list_tables(self) -> list:
     """
     List available table names from the data repository.
@@ -61,9 +65,13 @@ class DSConnection:
     """
     raise NotImplementedError("DSConnection function not available")
   
+  #
+  # Assign
+  #
+
   def assign_table(self, symbol: str, table: str, variables: list = None, 
                     missings: bool = False, identifiers: str = None, 
-                    id_name: str = None, asynchronous: bool = True) -> None:
+                    id_name: str = None, asynchronous: bool = True) -> DSResult:
     """
     Assign a data table from the data repository to a symbol in the DataSHIELD R session.
 
@@ -73,7 +81,7 @@ class DSConnection:
     """ 
     raise NotImplementedError("DSConnection function not available")
   
-  def assign_resource(self, symbol: str, resource: str, asynchronous: bool = True) -> None:
+  def assign_resource(self, symbol: str, resource: str, asynchronous: bool = True) -> DSResult:
     """
     Assign a resource from the data repository to a symbol in the DataSHIELD R session.
 
@@ -83,7 +91,7 @@ class DSConnection:
     """ 
     raise NotImplementedError("DSConnection function not available")
   
-  def assign_expr(self, symbol: str, expr: str, asynchronous: bool = True) -> None:
+  def assign_expr(self, symbol: str, expr: str, asynchronous: bool = True) -> DSResult:
     """
     Assign the result of the evaluation of an expression to a symbol in the DataSHIELD R session.
 
@@ -93,6 +101,10 @@ class DSConnection:
     """ 
     raise NotImplementedError("DSConnection function not available")
   
+  #
+  # Aggregate
+  #
+
   def aggregate(self, expr: str, asynchronous: bool = True) -> DSResult:
     """
     Aggregate some data from the DataSHIELD R session using a valid R expression. The 
@@ -103,6 +115,10 @@ class DSConnection:
     """
     raise NotImplementedError("DSConnection function not available")
   
+  #
+  # Symbols
+  #
+
   def list_symbols(self) -> list:
     """
     After assignments have been performed, some symbols live in the DataSHIELD R session on the server side.
@@ -116,7 +132,11 @@ class DSConnection:
     :param name: The name of symbol to remove
     """
     raise NotImplementedError("DSConnection function not available")
-  
+
+  #
+  # DataSHIELD config
+  #
+
   def list_profiles(self) -> list:
     """
     List available DataSHIELD profile names in the data repository.
@@ -136,7 +156,11 @@ class DSConnection:
     Get the list of DataSHIELD packages with their version, that have been configured on the remote data repository.
     """
     raise NotImplementedError("DSConnection function not available")
-  
+
+  #
+  # Workspaces
+  #
+
   def list_workspaces(self) -> list:
     """
     Get the list of DataSHIELD workspaces, that have been saved on the remote data repository.
@@ -169,7 +193,11 @@ class DSConnection:
     """
     raise NotImplementedError("DSConnection function not available")
   
-  def is_async(self) -> bool:
+  #
+  # Utils
+  #
+
+  def is_async(self) -> dict:
     """
     When a DSResult object is returned on aggregation or assignment operation,
     the raw result can be accessed asynchronously, allowing parallelization of DataSHIELD calls
@@ -179,7 +207,7 @@ class DSConnection:
     """
     raise NotImplementedError("DSConnection function not available")
   
-  def keep_alive(self) -> bool:
+  def keep_alive(self) -> None:
     """
     As the DataSHIELD sessions are working in parallel, this function helps at keeping
     idle connections alive while others are working. Any communication failure must
@@ -200,12 +228,13 @@ class DSDriver:
   """
 
   @classmethod
-  def new_connection(cls, name: str, args: dict, restore: str = None) -> DSConnection:
+  def new_connection(cls, name: str, args: dict, profile: str = "default", restore: str = None) -> DSConnection:
     """
     Creates a new connection
 
     :param name: The DataSHIELD server name
     :param args: The connection arguments, as a dictionary
+    :param profile: The DataSHIELD profile name to be used
     :param restore: The workspace name to be restored
     """
     raise NotImplementedError("DSConnection function not available")
