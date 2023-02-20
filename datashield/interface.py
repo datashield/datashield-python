@@ -17,7 +17,7 @@ class DSResult:
     wait for the completion, immediate response is expected. Once the result is
     identified as being completed, the raw result the operation can be get directly.
     """
-    raise NotImplementedError("DSResult function not available")
+    raise NotImplementedError('DSResult function not available')
 
   def fetch(self) -> any:
     """
@@ -25,7 +25,7 @@ class DSResult:
     run asynchronously, in which case it is a one-shot call. When the assignment or aggregation operation was not asynchronous,
     the result is wrapped in the object and can be fetched multiple times.
     """
-    raise NotImplementedError("DSResult function not available")
+    raise NotImplementedError('DSResult function not available')
 
 
 class DSConnection:
@@ -41,7 +41,7 @@ class DSConnection:
     """
     List available table names from the data repository.
     """
-    raise NotImplementedError("DSConnection function not available")
+    raise NotImplementedError('DSConnection function not available')
   
   def has_table(self, name: str) -> bool:
     """
@@ -49,13 +49,13 @@ class DSConnection:
 
     :param name: The name of the table to check
     """
-    raise NotImplementedError("DSConnection function not available")
+    raise NotImplementedError('DSConnection function not available')
   
   def list_resources(self) -> list:
     """
     List available resource names from the data repository.
     """
-    raise NotImplementedError("DSConnection function not available")
+    raise NotImplementedError('DSConnection function not available')
   
   def has_resource(self, name: str) -> bool:
     """
@@ -63,7 +63,7 @@ class DSConnection:
 
     :param name: The name of the resource to check
     """
-    raise NotImplementedError("DSConnection function not available")
+    raise NotImplementedError('DSConnection function not available')
   
   #
   # Assign
@@ -79,7 +79,7 @@ class DSConnection:
     :param table: The name of the table to assign
     :param asynchronous: Whether the operation is asynchronous (if supported by the DataSHIELD server)
     """ 
-    raise NotImplementedError("DSConnection function not available")
+    raise NotImplementedError('DSConnection function not available')
   
   def assign_resource(self, symbol: str, resource: str, asynchronous: bool = True) -> DSResult:
     """
@@ -89,7 +89,7 @@ class DSConnection:
     :param resource: The name of the resource to assign
     :param asynchronous: Whether the operation is asynchronous (if supported by the DataSHIELD server)
     """ 
-    raise NotImplementedError("DSConnection function not available")
+    raise NotImplementedError('DSConnection function not available')
   
   def assign_expr(self, symbol: str, expr: str, asynchronous: bool = True) -> DSResult:
     """
@@ -99,7 +99,7 @@ class DSConnection:
     :param expr: The R expression to evaluate and which result will be assigned
     :param asynchronous: Whether the operation is asynchronous (if supported by the DataSHIELD server)
     """ 
-    raise NotImplementedError("DSConnection function not available")
+    raise NotImplementedError('DSConnection function not available')
   
   #
   # Aggregate
@@ -113,7 +113,7 @@ class DSConnection:
     :param expr: The R expression to evaluate and which result will be returned
     :param asynchronous: Whether the operation is asynchronous (if supported by the DataSHIELD server)
     """
-    raise NotImplementedError("DSConnection function not available")
+    raise NotImplementedError('DSConnection function not available')
   
   #
   # Symbols
@@ -123,7 +123,7 @@ class DSConnection:
     """
     After assignments have been performed, some symbols live in the DataSHIELD R session on the server side.
     """
-    raise NotImplementedError("DSConnection function not available")
+    raise NotImplementedError('DSConnection function not available')
   
   def rm_symbol(self, name: str) -> None:
     """
@@ -131,7 +131,7 @@ class DSConnection:
     
     :param name: The name of symbol to remove
     """
-    raise NotImplementedError("DSConnection function not available")
+    raise NotImplementedError('DSConnection function not available')
 
   #
   # DataSHIELD config
@@ -141,7 +141,7 @@ class DSConnection:
     """
     List available DataSHIELD profile names in the data repository.
     """
-    raise NotImplementedError("DSConnection function not available")
+    raise NotImplementedError('DSConnection function not available')
   
   def list_methods(self, type: str = "aggregate") -> list:
     """
@@ -149,13 +149,13 @@ class DSConnection:
 
     :param type: The type of method, either "aggregate" (default) or "assign"
     """
-    raise NotImplementedError("DSConnection function not available")
+    raise NotImplementedError('DSConnection function not available')
   
   def list_packages(self) -> list:
     """
     Get the list of DataSHIELD packages with their version, that have been configured on the remote data repository.
     """
-    raise NotImplementedError("DSConnection function not available")
+    raise NotImplementedError('DSConnection function not available')
 
   #
   # Workspaces
@@ -165,7 +165,7 @@ class DSConnection:
     """
     Get the list of DataSHIELD workspaces, that have been saved on the remote data repository.
     """
-    raise NotImplementedError("DSConnection function not available")
+    raise NotImplementedError('DSConnection function not available')
   
   def save_workspace(self, name: str) -> list:
     """
@@ -173,7 +173,7 @@ class DSConnection:
 
     :param name: The name of the workspace
     """
-    raise NotImplementedError("DSConnection function not available")
+    raise NotImplementedError('DSConnection function not available')
   
   def restore_workspace(self, name: str) -> list:
     """
@@ -182,7 +182,7 @@ class DSConnection:
 
     :param name: The name of the workspace
     """
-    raise NotImplementedError("DSConnection function not available")
+    raise NotImplementedError('DSConnection function not available')
   
   def rm_workspace(self, name: str) -> list:
     """
@@ -191,7 +191,7 @@ class DSConnection:
 
     :param name: The name of the workspace
     """
-    raise NotImplementedError("DSConnection function not available")
+    raise NotImplementedError('DSConnection function not available')
   
   #
   # Utils
@@ -205,7 +205,7 @@ class DSConnection:
     aggregation operation ('aggregate'), table assignment operation ('assign_table'),
     resource assignment operation ('assign_resource') and expression assignment operation ('assign_expr').
     """
-    raise NotImplementedError("DSConnection function not available")
+    raise NotImplementedError('DSConnection function not available')
   
   def keep_alive(self) -> None:
     """
@@ -213,13 +213,13 @@ class DSConnection:
     idle connections alive while others are working. Any communication failure must
     be silently processed.
     """
-    raise NotImplementedError("DSConnection function not available")
+    raise NotImplementedError('DSConnection function not available')
   
   def disconnect(self) -> None:
     """
     This closes the connection, discards all pending work, and frees resources (e.g., memory, sockets).
     """
-    raise NotImplementedError("DSConnection function not available")
+    raise NotImplementedError('DSConnection function not available')
 
 
 class DSDriver:
@@ -237,7 +237,7 @@ class DSDriver:
     :param profile: The DataSHIELD profile name to be used
     :param restore: The workspace name to be restored
     """
-    raise NotImplementedError("DSConnection function not available")
+    raise NotImplementedError('DSConnection function not available')
   
   @classmethod
   def load_class(cls, name: str) -> any:
@@ -247,7 +247,7 @@ class DSDriver:
     :param name: The driver class name
     :return The class of the driver on which the ``new_connection()`` function will be called 
     """
-    names = name.split(".")
+    names = name.split('.')
     className = names.pop()
-    moduleName = ".".join(names)
+    moduleName = '.'.join(names)
     return getattr(importlib.import_module(moduleName), className)

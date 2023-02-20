@@ -10,13 +10,14 @@ class DSLoginBuilder:
     def __init__(self):
         self.items = list()
     
-    def add(self, name: str, url: str, user: str = None, password: str = None, token: str = None):
+    def add(self, name: str, url: str, user: str = None, password: str = None, token: str = None, profile: str = 'default'):
         self.items.append({
             'name': name,
             'url': url,
             'user': user,
             'password': password,
-            'token': token
+            'token': token,
+            'profile': profile
         })
         return self
     
