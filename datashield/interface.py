@@ -143,7 +143,7 @@ class DSConnection:
     """
     raise NotImplementedError('DSConnection function not available')
   
-  def list_methods(self, type: str = "aggregate") -> list:
+  def list_methods(self, type: str = 'aggregate') -> list:
     """
     Get the list of DataSHIELD methods that have been configured on the remote data repository.
 
@@ -228,7 +228,7 @@ class DSDriver:
   """
 
   @classmethod
-  def new_connection(cls, name: str, args: dict, profile: str = "default", restore: str = None) -> DSConnection:
+  def new_connection(cls, name: str, args: dict, profile: str = 'default', restore: str = None) -> DSConnection:
     """
     Creates a new connection
 
