@@ -8,7 +8,7 @@ license = "LGPL"
 readme = "README.md"
 homepage = "https://www.datashield.org"
 repository = "https://github.com/datashield/datashield-python"
-documentation = "https://github.com/datashield/datashield-python"
+documentation = "https://datashield.github.io/datashield-python"
 
 [tool.poetry.urls]
 "Bug Tracker" = "https://github.com/datashield/datashield-python/issues"

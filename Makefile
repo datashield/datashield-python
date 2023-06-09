@@ -11,4 +11,4 @@ clean:
 	rm -rf dist
 
 local-install:
-	pip install ./dist/obiba_opal-*.tar.gz 
+	pip install ./dist/datashield-*.tar.gz 
