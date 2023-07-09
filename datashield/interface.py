@@ -4,6 +4,21 @@ Classes to be implemented for each data repository type.
 
 import importlib
 
+class DSLoginInfo:
+    """
+    Helper class with DataSHIELD login details.
+    """
+
+    def __init__(self, name: str, url: str, user: str = None, password: str = None, token: str = None, profile: str = 'default', driver: str = 'datashield_opal.OpalDriver'):
+        self.items = list()
+        self.name = name
+        self.url = url
+        self.user = user
+        self.password = password
+        self.token = token
+        self.profile = profile if profile is not None else 'default'
+        self.driver = driver if driver is not None else 'datashield_opal.OpalDriver'
+
 class DSResult:
     """
     This virtual class describes the result and state of execution of
@@ -72,8 +87,8 @@ class DSConnection:
     #
 
     def assign_table(self, symbol: str, table: str, variables: list = None,
-                                        missings: bool = False, identifiers: str = None,
-                                        id_name: str = None, asynchronous: bool = True) -> DSResult:
+                    missings: bool = False, identifiers: str = None,
+                    id_name: str = None, asynchronous: bool = True) -> DSResult:
         """
         Assign a data table from the data repository to a symbol in the DataSHIELD R session.
 
@@ -230,13 +245,11 @@ class DSDriver:
     """
 
     @classmethod
-    def new_connection(cls, name: str, args: dict, profile: str = 'default', restore: str = None) -> DSConnection:
+    def new_connection(cls, args: DSLoginInfo, restore: str = None) -> DSConnection:
         """
         Creates a new connection
 
-        :param name: The DataSHIELD server name
-        :param args: The connection arguments, as a dictionary
-        :param profile: The DataSHIELD profile name to be used
+        :param args: The connection arguments, as a DSLoginInfo object
         :param restore: The workspace name to be restored
         """
         raise NotImplementedError('DSConnection function not available')
