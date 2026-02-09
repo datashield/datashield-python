@@ -1,17 +1,17 @@
 install:
-	poetry install
+	uv sync
 
 test:
-	poetry run pytest
+	uv run pytest
 
 build:
-	poetry build
+	uv build
 
 publish:
-	poetry publish --build
+	uv publish
 
 clean:
 	rm -rf dist
 
 local-install:
-	pip install ./dist/datashield-*.tar.gz 
+	pip install ./dist/datashield-*.tar.gz
