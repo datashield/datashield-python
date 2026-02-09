@@ -1,8 +1,10 @@
 """
 DataSHIELD API.
 """
-from datashield.interface import DSLoginInfo, DSConnection, DSDriver, DSError
 import time
+
+from datashield.interface import DSConnection, DSDriver, DSError, DSLoginInfo
+
 
 class DSLoginBuilder:
     """
@@ -10,8 +12,8 @@ class DSLoginBuilder:
     """
 
     def __init__(self):
-        self.items: list[DSLoginInfo] = list()
-    
+        self.items: list[DSLoginInfo] = []
+
     def add(self, name: str, url: str, user: str = None, password: str = None, token: str = None, profile: str = 'default', driver: str = 'datashield_opal.OpalDriver'):
         """
         Add DataSHIELD login information.
@@ -23,7 +25,7 @@ class DSLoginBuilder:
         :param token: The access token (required if user is None)
         :param profile: The DataSHIELD profile name to be used
         :param driver: The DataSHIELD connection driver class full name
-        :return Itself 
+        :return Itself
         """
         if name is None:
             raise ValueError('Server name is missing')
@@ -36,7 +38,7 @@ class DSLoginBuilder:
             raise ValueError('Either user or token must be provided')
         self.items.append(DSLoginInfo(name, url, user, password, token, profile, driver))
         return self
-    
+
     def remove(self, name: str):
         """
         Remove the DataSHIELD login information by its name, if it exists.
@@ -46,7 +48,7 @@ class DSLoginBuilder:
         """
         self.items = [x for x in self.items if x.name != name]
         return self
-    
+
     def build(self) -> list[DSLoginInfo]:
         """
         Get the list of DataSHIELD login info.
@@ -57,7 +59,7 @@ class DSLoginBuilder:
 
 class DSSession:
     """
-    DataSHIELD session, establishes connections with remote servers and performs commands.
+    DataSHIELD session (client side), establishes connections with remote servers and performs commands.
     """
 
     def __init__(self, logins: list[DSLoginInfo]):
@@ -76,8 +78,8 @@ class DSSession:
 
         :param restore: The workspace name to be restored
         """
-        self.conns = list()
-        self.errors = dict()
+        self.conns = []
+        self.errors = {}
         for info in self.logins:
             try:
                 driver = DSDriver.load_class(info.driver)
@@ -101,13 +103,13 @@ class DSSession:
         :param cons: The list of connections to close.
         :param save: The name of the workspace to save before closing the connections.
         """
-        self.errors = dict()
+        self.errors = {}
         for conn in self.conns:
             try:
                 if save:
                     conn.save_workspace(f"{conn.name}:{save}")
                 conn.disconnect()
-            except DSError as e:
+            except DSError:
                 # silently fail
                 pass
         self.conns = None
@@ -117,13 +119,13 @@ class DSSession:
         Check if some connections were opened.
         """
         return len(self.conns) > 0
-    
+
     def get_connection_names(self) -> list[str]:
         """
         Get the opened connection names.
         """
         if self.conns:
-            return map(lambda conn: conn.name, self.conns)
+            return (conn.name for conn in self.conns)
         else:
             return None
 
@@ -132,7 +134,7 @@ class DSSession:
         Check if last command execution has produced errors.
         """
         return len(self.errors) > 0
-    
+
     def get_errors(self) -> dict:
         """
         Get the last command execution errors, per remote server name.
@@ -354,7 +356,7 @@ class DSSession:
         rval = self._do_wait(cmd)
         self._check_errors()
         return rval
-    
+
     #
     # Private functions
     #
@@ -384,7 +386,7 @@ class DSSession:
         """
         Prepare for storing errors.
         """
-        self.errors = dict()
+        self.errors = {}
 
     def _append_error(self, conn: DSConnection, error: Exception) -> None:
         """

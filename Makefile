@@ -1,8 +1,14 @@
 install:
-	uv sync
+	uv sync --extra dev
 
 test:
 	uv run pytest
+
+lint:
+	uv run ruff check .
+
+fix:
+	uv run ruff check . --fix
 
 build:
 	uv build

@@ -9,6 +9,12 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = []
 
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.0",
+    "ruff>=0.1.0",
+]
+
 [project.urls]
 Homepage = "https://www.datashield.org"
 Repository = "https://github.com/datashield/datashield-python"
@@ -18,3 +24,24 @@ Documentation = "https://datashield.github.io/datashield-python"
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes
+    "I",      # isort
+    "C",      # flake8-comprehensions
+    "B",      # flake8-bugbear
+]
+extend-ignore = [
+    "E501",   # line too long (handled by formatter)
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
