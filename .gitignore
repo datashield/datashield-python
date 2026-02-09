@@ -29,3 +29,4 @@ coverage
 
 .serena/
 __pycache__
+.venv/
