@@ -135,7 +135,7 @@ class DSSession:
         Get the opened connection names.
         """
         if self.conns:
-            return (conn.name for conn in self.conns)
+            return [conn.name for conn in self.conns]
         else:
             return None
 

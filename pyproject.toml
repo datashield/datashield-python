@@ -8,7 +8,7 @@ authors = [
 maintainers = [
     {name = "Yannick Marcon", email = "yannick.marcon@obiba.org"}
 ]
-license = {text = "GPL-3.0-only"}
+license = {text = "LGPL"}
 readme = "README.md"
 requires-python = ">=3.10"
 keywords = ["datashield", "data"]

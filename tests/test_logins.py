@@ -1,3 +1,4 @@
+import pytest
 from datashield import DSLoginBuilder
 
 
@@ -28,28 +29,19 @@ def test_logins():
 
 def test_login_validations():
     # name not missing
-    try:
+    with pytest.raises(ValueError, match="Server name is missing"):
         DSLoginBuilder().add(None, "https://opal-demo.obba.org", "dsuser", "P@ssw0rd")
-        raise ValueError("Expected ValueError for missing name") from None
-    except ValueError:
-        assert True
+
     # url not missing
-    try:
+    with pytest.raises(ValueError, match="Server URL is missing"):
         DSLoginBuilder().add("server1", None, "dsuser", "P@ssw0rd")
-        raise ValueError("Expected ValueError for missing URL") from None
-    except ValueError:
-        assert True
+
     # name is unique
-    try:
+    with pytest.raises(ValueError, match="Server name must be unique"):
         DSLoginBuilder().add("server1", "https://opal-demo.obba.org", "dsuser", "P@ssw0rd").add(
             "server1", "https://demo.datashield.org", token="1234abcd"
         )
-        raise ValueError("Expected ValueError for duplicate server name") from None
-    except ValueError:
-        assert True
+
     # either user and token is missing
-    try:
+    with pytest.raises(ValueError, match="Either user or token must be provided"):
         DSLoginBuilder().add("server1", "https://opal-demo.obba.org").add("server2", "https://demo.datashield.org")
-        raise ValueError("Expected ValueError for missing credentials") from None
-    except ValueError:
-        assert True
