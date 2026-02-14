@@ -1,17 +1,28 @@
 install:
-	uv sync
+	uv sync --all-extras
 
 test:
-	uv run pytest
+	uv run --all-extras pytest
+
+lint:
+	uv run ruff check .
+
+fix:
+	uv run ruff check . --fix
+
+format:
+	uv run ruff format .
+
+check: format fix
 
 build:
 	uv build
 
-publish:
-	uv publish
-
 clean:
 	rm -rf dist
 
-local-install:
+local-install: clean build
 	pip install ./dist/datashield-*.tar.gz
+
+local-install-force: clean build
+	pip install ./dist/datashield-*.tar.gz --break-system-packages
