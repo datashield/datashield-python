@@ -1,8 +1,10 @@
 """
 DataSHIELD API.
 """
+
 from datashield.interface import DSLoginInfo, DSConnection, DSDriver, DSError
 import time
+
 
 class DSLoginBuilder:
     """
@@ -10,9 +12,18 @@ class DSLoginBuilder:
     """
 
     def __init__(self):
-        self.items: list[DSLoginInfo] = list()
-    
-    def add(self, name: str, url: str, user: str = None, password: str = None, token: str = None, profile: str = 'default', driver: str = 'datashield_opal.OpalDriver'):
+        self.items: list[DSLoginInfo] = []
+
+    def add(
+        self,
+        name: str,
+        url: str,
+        user: str = None,
+        password: str = None,
+        token: str = None,
+        profile: str = "default",
+        driver: str = "datashield_opal.OpalDriver",
+    ):
         """
         Add DataSHIELD login information.
 
@@ -23,20 +34,20 @@ class DSLoginBuilder:
         :param token: The access token (required if user is None)
         :param profile: The DataSHIELD profile name to be used
         :param driver: The DataSHIELD connection driver class full name
-        :return Itself 
+        :return Itself
         """
         if name is None:
-            raise ValueError('Server name is missing')
+            raise ValueError("Server name is missing")
         if url is None:
-            raise ValueError('Server URL is missing')
+            raise ValueError("Server URL is missing")
         found = [x for x in self.items if x.name == name]
         if len(found) > 0:
-            raise ValueError('Server name must be unique: %s' % name)
+            raise ValueError(f"Server name must be unique: {name}")
         if user is None and token is None:
-            raise ValueError('Either user or token must be provided')
+            raise ValueError("Either user or token must be provided")
         self.items.append(DSLoginInfo(name, url, user, password, token, profile, driver))
         return self
-    
+
     def remove(self, name: str):
         """
         Remove the DataSHIELD login information by its name, if it exists.
@@ -46,7 +57,7 @@ class DSLoginBuilder:
         """
         self.items = [x for x in self.items if x.name != name]
         return self
-    
+
     def build(self) -> list[DSLoginInfo]:
         """
         Get the list of DataSHIELD login info.
@@ -54,6 +65,7 @@ class DSLoginBuilder:
         :return The list of DSLoginInfo objects
         """
         return self.items
+
 
 class DSSession:
     """
@@ -76,12 +88,12 @@ class DSSession:
 
         :param restore: The workspace name to be restored
         """
-        self.conns = list()
-        self.errors = dict()
+        self.conns = []
+        self.errors = {}
         for info in self.logins:
             try:
                 driver = DSDriver.load_class(info.driver)
-                conn = driver.new_connection(info, restore = restore)
+                conn = driver.new_connection(info, restore=restore)
                 self.conns.append(conn)
             except Exception as e:
                 if failSafe:
@@ -101,13 +113,13 @@ class DSSession:
         :param cons: The list of connections to close.
         :param save: The name of the workspace to save before closing the connections.
         """
-        self.errors = dict()
+        self.errors = {}
         for conn in self.conns:
             try:
                 if save:
                     conn.save_workspace(f"{conn.name}:{save}")
                 conn.disconnect()
-            except DSError as e:
+            except DSError:
                 # silently fail
                 pass
         self.conns = None
@@ -117,13 +129,13 @@ class DSSession:
         Check if some connections were opened.
         """
         return len(self.conns) > 0
-    
+
     def get_connection_names(self) -> list[str]:
         """
         Get the opened connection names.
         """
         if self.conns:
-            return map(lambda conn: conn.name, self.conns)
+            return (conn.name for conn in self.conns)
         else:
             return None
 
@@ -132,7 +144,7 @@ class DSSession:
         Check if last command execution has produced errors.
         """
         return len(self.errors) > 0
-    
+
     def get_errors(self) -> dict:
         """
         Get the last command execution errors, per remote server name.
@@ -179,7 +191,7 @@ class DSSession:
             rval[conn.name] = conn.list_packages()
         return rval
 
-    def methods(self, type: str = 'aggregate') -> dict:
+    def methods(self, type: str = "aggregate") -> dict:
         """
         Get the list of DataSHIELD methods that have been configured on the remote data repository.
 
@@ -263,9 +275,17 @@ class DSSession:
                 self._append_error(conn, e)
         self._check_errors()
 
-    def assign_table(self, symbol: str, table: str = None, tables: dict = None, variables: list = None,
-                    missings: bool = False, identifiers: str = None,
-                    id_name: str = None, asynchronous: bool = True) -> None:
+    def assign_table(
+        self,
+        symbol: str,
+        table: str = None,
+        tables: dict = None,
+        variables: list = None,
+        missings: bool = False,
+        identifiers: str = None,
+        id_name: str = None,
+        asynchronous: bool = True,
+    ) -> None:
         """
         Assign a data table from the data repository to a symbol in the DataSHIELD R session.
 
@@ -289,7 +309,9 @@ class DSSession:
         self._do_wait(cmd)
         self._check_errors()
 
-    def assign_resource(self, symbol: str, resource: str = None, resources: dict = None, asynchronous: bool = True) -> None:
+    def assign_resource(
+        self, symbol: str, resource: str = None, resources: dict = None, asynchronous: bool = True
+    ) -> None:
         """
         Assign a resource from the data repository to a symbol in the DataSHIELD R session.
 
@@ -332,7 +354,6 @@ class DSSession:
         self._do_wait(cmd)
         self._check_errors()
 
-
     def aggregate(self, expr: str, asynchronous: bool = True) -> dict:
         """
         Aggregate some data from the DataSHIELD R session using a valid R expression. The
@@ -354,7 +375,7 @@ class DSSession:
         rval = self._do_wait(cmd)
         self._check_errors()
         return rval
-    
+
     #
     # Private functions
     #
@@ -384,7 +405,7 @@ class DSSession:
         """
         Prepare for storing errors.
         """
-        self.errors = dict()
+        self.errors = {}
 
     def _append_error(self, conn: DSConnection, error: Exception) -> None:
         """
