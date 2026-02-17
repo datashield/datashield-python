@@ -2,6 +2,7 @@
 DataSHIELD API.
 """
 
+import logging
 from datashield.interface import DSLoginInfo, DSConnection, DSDriver, DSError
 import time
 
@@ -72,13 +73,17 @@ class DSSession:
     DataSHIELD session, establishes connections with remote servers and performs commands.
     """
 
-    def __init__(self, logins: list[DSLoginInfo]):
+    def __init__(self, logins: list[DSLoginInfo], start_timeout: float = 300.0, start_delay: float = 0.1):
         """
         Create a session, with connection information. Does not open the connections.
 
         :param logins: A list of login details
+        :param start_timeout: The maximum time in seconds to wait for R sessions to start, default is 300 seconds (5 minutes)
+        :param start_delay: The delay in seconds between checking if R sessions are started, default is 0.1 seconds
         """
         self.logins = logins
+        self.start_timeout = start_timeout
+        self.start_delay = start_delay
         self.conns: list[DSConnection] = None
         self.errors: dict = None
 
@@ -127,27 +132,35 @@ class DSSession:
     def has_connections(self) -> bool:
         """
         Check if some connections were opened.
+
+        :return: True if some connections were opened, False otherwise
         """
         return len(self.conns) > 0
 
     def get_connection_names(self) -> list[str]:
         """
         Get the opened connection names.
+
+        :return: The list of opened connection names
         """
         if self.conns:
             return [conn.name for conn in self.conns]
         else:
-            return None
+            return []
 
     def has_errors(self) -> bool:
         """
         Check if last command execution has produced errors.
+
+        :return: True if last command execution has produced errors, False otherwise
         """
         return len(self.errors) > 0
 
     def get_errors(self) -> dict:
         """
         Get the last command execution errors, per remote server name.
+
+        :return: The last command execution errors, per remote server name
         """
         return self.errors
 
@@ -158,6 +171,8 @@ class DSSession:
     def tables(self) -> dict:
         """
         List available table names from the data repository.
+
+        :return: The available table names from the data repository, per remote server name
         """
         rval = {}
         for conn in self.conns:
@@ -167,6 +182,8 @@ class DSSession:
     def resources(self) -> dict:
         """
         List available resource names from the data repository.
+
+        :return: The available resource names from the data repository, per remote server name
         """
         rval = {}
         for conn in self.conns:
@@ -176,6 +193,8 @@ class DSSession:
     def profiles(self) -> dict:
         """
         List available DataSHIELD profile names in the data repository.
+
+        :return: The available DataSHIELD profile names in the data repository, per remote server name
         """
         rval = {}
         for conn in self.conns:
@@ -185,6 +204,8 @@ class DSSession:
     def packages(self) -> dict:
         """
         Get the list of DataSHIELD packages with their version, that have been configured on the remote data repository.
+
+        :return: The list of DataSHIELD packages with their version, that have been configured on the remote data repository, per remote server name
         """
         rval = {}
         for conn in self.conns:
@@ -196,6 +217,7 @@ class DSSession:
         Get the list of DataSHIELD methods that have been configured on the remote data repository.
 
         :param type: The type of method, either "aggregate" (default) or "assign"
+        :return: The list of DataSHIELD methods that have been configured on the remote data repository, per remote server name
         """
         rval = {}
         for conn in self.conns:
@@ -209,13 +231,15 @@ class DSSession:
     def workspaces(self) -> dict:
         """
         Get the list of DataSHIELD workspaces, that have been saved on the remote data repository.
+
+        :return: The list of DataSHIELD workspaces, that have been saved on the remote data repository, per remote server name
         """
         rval = {}
         for conn in self.conns:
             rval[conn.name] = conn.list_workspaces()
         return rval
 
-    def workspace_save(self, name: str) -> dict:
+    def workspace_save(self, name: str) -> None:
         """
         Save the DataSHIELD R session in a workspace on the remote data repository.
 
@@ -224,7 +248,7 @@ class DSSession:
         for conn in self.conns:
             conn.save_workspace(f"{conn.name}:{name}")
 
-    def workspace_restore(self, name: str) -> dict:
+    def workspace_restore(self, name: str) -> None:
         """
         Restore a saved DataSHIELD R session from the remote data repository. When restoring a workspace,
         any existing symbol or file with same name will be overridden.
@@ -234,7 +258,7 @@ class DSSession:
         for conn in self.conns:
             conn.restore_workspace(f"{conn.name}:{name}")
 
-    def workspace_rm(self, name: str) -> dict:
+    def workspace_rm(self, name: str) -> None:
         """
         Remove a DataSHIELD workspace from the remote data repository. Ignored if no
         such workspace exists.
@@ -248,11 +272,85 @@ class DSSession:
     # R session
     #
 
+    def sessions(self) -> dict:
+        """
+        Ensure R sessions are started on the remote servers and wait until they are ready.
+        This method returns a dictionary mapping each remote server name to its underlying
+        R session object (an ``RSession`` instance). These session objects are
+        primarily intended for status inspection (e.g. ``is_started()``, ``is_ready()``,
+        ``is_pending()``, ``is_failed()``, ``is_terminated()``, ``get_last_message()``) and
+        not for direct interaction with the remote R environment.
+        In normal use, you do not need to work with the returned session objects directly.
+        Instead, interact with the remote R sessions through the higher-level ``DSSession``
+        methods (such as assignment, aggregation, workspace and other helpers), which
+        operate on all underlying sessions. Important: only sessions that have been successfully started
+        and are ready will be included in the returned dictionary and used for subsequent operations.
+        If a session fails to start or check status, it will be excluded from the returned dictionary
+        and from subsequent operations, and an error will be logged. If no sessions can be started successfully,
+        an exception will be raised.
+
+        :return: A dictionary mapping remote server names to their corresponding R session
+            objects, intended mainly for internal use and status monitoring.
+        """
+        rval = {}
+        self._init_errors()
+        started_conns = []
+        excluded_conns = []
+
+        # start sessions asynchronously if supported, otherwise synchronously
+        for conn in self.conns:
+            try:
+                if not conn.has_session():
+                    conn.start_session(asynchronous=True)
+            except Exception as e:
+                logging.warning(f"Failed to start session: {conn.name} - {e}")
+                excluded_conns.append(conn.name)
+
+        # check for session status and wait until all are started
+        for conn in [c for c in self.conns if c.name not in excluded_conns]:
+            try:
+                if conn.is_session_started():
+                    started_conns.append(conn.name)
+            except Exception as e:
+                logging.warning(f"Failed to check session status: {conn.name} - {e}")
+                excluded_conns.append(conn.name)
+
+        # wait until all sessions are started, excluding those that have failed to start or check status
+        start_time = time.time()
+        while len(started_conns) < len(self.conns) - len(excluded_conns):
+            if time.time() - start_time > self.start_timeout:
+                raise DSError("Timed out waiting for R sessions to start")
+            time.sleep(self.start_delay)
+            remaining_conns = [
+                conn for conn in self.conns if conn.name not in started_conns and conn.name not in excluded_conns
+            ]
+            for conn in remaining_conns:
+                try:
+                    if conn.is_session_started():
+                        started_conns.append(conn.name)
+                except Exception as e:
+                    logging.warning(f"Failed to check session status: {conn.name} - {e}")
+                    excluded_conns.append(conn.name)
+
+        # at this point, all sessions that could be started have been started, and those that failed to start or check status have been excluded
+        for conn in self.conns:
+            if conn.name in started_conns:
+                rval[conn.name] = conn.get_session()
+        if len(excluded_conns) > 0:
+            logging.error(f"Some sessions have been excluded due to errors: {', '.join(excluded_conns)}")
+            self.conns = [conn for conn in self.conns if conn.name not in excluded_conns]
+        if len(self.conns) == 0:
+            raise DSError("No sessions could be started successfully.")
+        return rval
+
     def ls(self) -> dict:
         """
         After assignments have been performed, list the symbols that live in the DataSHIELD R session on the server side.
+
+        :return: The symbols that live in the DataSHIELD R session on the server side, per remote server name
         """
-        self._init_errors()
+        # ensure sessions are started and available
+        self.sessions()
         rval = {}
         for conn in self.conns:
             try:
@@ -263,11 +361,14 @@ class DSSession:
         self._check_errors()
         return rval
 
-    def rm(self, symbol: str):
+    def rm(self, symbol: str) -> None:
         """
         Remove a symbol from remote servers.
+
+        :param symbol: The name of the symbol to remove
         """
-        self._init_errors()
+        # ensure sessions are started and available
+        self.sessions()
         for conn in self.conns:
             try:
                 conn.rm_symbol(symbol)
@@ -294,7 +395,8 @@ class DSSession:
         :param tables: The name of the table to assign, per server name. If not defined, 'table' is used.
         :param asynchronous: Whether the operation is asynchronous (if supported by the DataSHIELD server)
         """
-        self._init_errors()
+        # ensure sessions are started and available
+        self.sessions()
         cmd = {}
         for conn in self.conns:
             name = table
@@ -320,7 +422,8 @@ class DSSession:
         :param resources: The name of the resource to assign, per server name. If not defined, 'resource' is used.
         :param asynchronous: Whether the operation is asynchronous (if supported by the DataSHIELD server)
         """
-        self._init_errors()
+        # ensure sessions are started and available
+        self.sessions()
         cmd = {}
         for conn in self.conns:
             name = resource
@@ -343,7 +446,8 @@ class DSSession:
         :param expr: The R expression to evaluate and which result will be assigned
         :param asynchronous: Whether the operation is asynchronous (if supported by the DataSHIELD server)
         """
-        self._init_errors()
+        # ensure sessions are started and available
+        self.sessions()
         cmd = {}
         for conn in self.conns:
             try:
@@ -361,8 +465,10 @@ class DSSession:
 
         :param expr: The R expression to evaluate and which result will be returned
         :param asynchronous: Whether the operation is asynchronous (if supported by the DataSHIELD server)
+        :return: The result of the aggregation expression evaluation, per remote server name
         """
-        self._init_errors()
+        # ensure sessions are started and available
+        self.sessions()
         cmd = {}
         rval = {}
         for conn in self.conns:
@@ -411,6 +517,7 @@ class DSSession:
         """
         Append an error.
         """
+        logging.error(f"[{conn.name}] {error}")
         self.errors[conn.name] = error
 
     def _check_errors(self) -> None:
