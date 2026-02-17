@@ -187,6 +187,18 @@ class DSConnection:
         """
         raise NotImplementedError("DSConnection function not available")
 
+    def is_session_started(self) -> bool:
+        """
+        Get whether the session with the DataSHIELD server is started. If the session start was asynchronous, this function
+        can be used to check whether the session is started without waiting for it to be started. If the last call was positive,
+        subsequent calls will not request the server for session status, but will return True directly. If the last call was negative,
+        subsequent calls will request the server for session status until a positive response is obtained.
+
+        :return: Whether the session is started
+        :throws: DSError if the session was not started or session information is not available
+        """
+        raise NotImplementedError("DSConnection function not available")
+
     def get_session(self) -> RSession:
         """
         Get the R session with the DataSHIELD server. If no session is established, an error will be raised.
@@ -359,9 +371,10 @@ class DSConnection:
         the raw result can be accessed asynchronously, allowing parallelization of DataSHIELD calls
         over multpile servers. The returned named list of logicals will specify if asynchronicity is supported for:
         aggregation operation ('aggregate'), table assignment operation ('assign_table'),
-        resource assignment operation ('assign_resource') and expression assignment operation ('assign_expr').
+        resource assignment operation ('assign_resource'), expression assignment operation ('assign_expr')
+        and R session creation ('session').
 
-        :return: A named list of logicals specifying if asynchronicity is supported for aggregation operation ('aggregate'), table assignment operation ('assign_table'),
+        :return: A named list of logicals specifying if asynchronicity is supported.
         """
         raise NotImplementedError("DSConnection function not available")
 
