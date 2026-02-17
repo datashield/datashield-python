@@ -63,21 +63,33 @@ class RSession:
     R Session (server side) class to a DataSHIELD server.
     """
 
+    def is_started(self) -> bool:
+        """
+        Get whether the session has been started. This call must not wait for the session to
+        be started, immediate response is expected.
+
+        :return: Whether the session has been started
+        """
+        raise NotImplementedError("RSession function not available")
+
     def is_ready(self) -> bool:
         """
         Get whether the session is ready for receiving requests. This call must not
         wait for the session to be ready, immediate response is expected.
 
         :return: Whether the session is ready
+        :throws: DSError if the session was not started or session information is not available
         """
         raise NotImplementedError("RSession function not available")
 
     def is_pending(self) -> bool:
         """
-        Get whether the session is pending, i.e., it is in the process of being started but is not ready yet. This call must not
-        wait for the session to be pending, immediate response is expected.
+        Get whether the session is pending, i.e., it is in the process of being started but is
+        not ready yet. This call must not wait for the session to be pending, immediate response
+        is expected.
 
         :return: Whether the session is pending
+        :throws: DSError if the session was not started or session information is not available
         """
         raise NotImplementedError("RSession function not available")
 
@@ -87,14 +99,26 @@ class RSession:
         wait for the session to have failed, immediate response is expected.
 
         :return: Whether the session has failed
+        :throws: DSError if the session was not started or session information is not available
         """
         raise NotImplementedError("RSession function not available")
 
-    def get_state_message(self) -> str:
+    def is_terminated(self) -> bool:
+        """
+        Get whether the session is terminated. This call must not wait for the session to be
+        terminated, immediate response is expected.
+
+        :return: Whether the session is terminated
+        :throws: DSError if the session was not started or session information is not available
+        """
+        raise NotImplementedError("RSession function not available")
+
+    def get_last_message(self) -> str:
         """
         Get a message describing the current state of the session, which can be used for debugging or logging purposes.
 
         :return: The session state message
+        :throws: DSError if the session was not started or session information is not available
         """
         raise NotImplementedError("RSession function not available")
 

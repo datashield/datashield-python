@@ -199,7 +199,7 @@ class DSSession:
     def packages(self) -> dict:
         """
         Get the list of DataSHIELD packages with their version, that have been configured on the remote data repository.
-        
+
         :return: The list of DataSHIELD packages with their version, that have been configured on the remote data repository, per remote server name
         """
         rval = {}
@@ -227,7 +227,7 @@ class DSSession:
         """
         Get the list of DataSHIELD workspaces, that have been saved on the remote data repository.
 
-        :return: The list of DataSHIELD workspaces, that have been saved on the remote data repository, per remote server name  
+        :return: The list of DataSHIELD workspaces, that have been saved on the remote data repository, per remote server name
         """
         rval = {}
         for conn in self.conns:
@@ -294,7 +294,7 @@ class DSSession:
     def ls(self) -> dict:
         """
         After assignments have been performed, list the symbols that live in the DataSHIELD R session on the server side.
-        
+
         :return: The symbols that live in the DataSHIELD R session on the server side, per remote server name
         """
         self._init_errors()
