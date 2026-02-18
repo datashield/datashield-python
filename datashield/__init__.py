@@ -1,5 +1,6 @@
 from datashield.interface import (
     DSConnection as DSConnection,
+    DSConfig as DSConfig,
     DSLoginInfo as DSLoginInfo,
     DSDriver as DSDriver,
     DSError as DSError,

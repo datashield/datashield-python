@@ -3,31 +3,87 @@ Classes to be implemented for each data repository type.
 """
 
 import importlib
+import logging
+import os
+import yaml
+from pydantic import BaseModel, Field
+
+# Default configuration file paths to look for DataSHIELD login information, in order of precedence
+CONFIG_FILES = ["~/.config/datashield/config.yaml", "./.datashield/config.yaml"]
 
 
-class DSLoginInfo:
+class DSLoginInfo(BaseModel):
     """
     Helper class with DataSHIELD login details.
     """
 
-    def __init__(
-        self,
-        name: str,
-        url: str,
-        user: str = None,
-        password: str = None,
-        token: str = None,
-        profile: str = "default",
-        driver: str = "datashield_opal.OpalDriver",
-    ):
-        self.items = []
-        self.name = name
-        self.url = url
-        self.user = user
-        self.password = password
-        self.token = token
-        self.profile = profile if profile is not None else "default"
-        self.driver = driver if driver is not None else "datashield_opal.OpalDriver"
+    name: str
+    url: str
+    user: str | None = None
+    password: str | None = None
+    token: str | None = None
+    profile: str = "default"
+    driver: str = "datashield_opal.OpalDriver"
+
+    model_config = {"extra": "forbid"}
+
+
+class DSConfig(BaseModel):
+    """
+    Helper class with DataSHIELD configuration details.
+    """
+
+    servers: list[DSLoginInfo] = Field(default_factory=list)
+
+    model_config = {"extra": "forbid"}
+
+    @classmethod
+    def load(cls) -> "DSConfig":
+        """
+        Load the DataSHIELD configuration from default configuration files. The file must contain
+        a list of servers with their login details. The configuration from the first file found will be loaded,
+        in order of precedence. If multiple files are found, the configurations will be merged, with new server
+        details replacing existing ones by name.
+
+        :return: The DataSHIELD configuration object
+        """
+        merged_config = None
+        for config_file in CONFIG_FILES:
+            try:
+                # check file exists and is readable, if not, silently ignore
+                if not os.path.exists(config_file):
+                    continue
+                if not os.access(config_file, os.R_OK):
+                    continue
+                config = cls.load_from_file(config_file)
+                if merged_config is None:
+                    merged_config = config
+                else:
+                    # merge servers by name, new ones replacing existing ones, and keep the rest of existing ones
+                    existing_servers = {x.name: x for x in merged_config.servers}
+                    for server in config.servers:
+                        existing_servers[server.name] = server
+                    merged_config.servers = list(existing_servers.values())
+            except Exception as e:
+                # silently ignore errors, e.g. file not found or invalid format
+                logging.error(f"Failed to load login information from {config_file}: {e}")
+        return merged_config if merged_config else cls()
+
+    @classmethod
+    def load_from_file(cls, file: str) -> "DSConfig":
+        """
+        Load the DataSHIELD configuration from a YAML file. The file must contain a list of servers with their login details.
+
+        :param file: The path to the YAML file containing the DataSHIELD configuration
+        :return: The DataSHIELD configuration object
+        """
+        with open(file) as f:
+            config_data = yaml.safe_load(f)
+
+        if config_data is None:
+            config_data = {}
+
+        return cls.model_validate(config_data)
 
 
 class DSResult:
@@ -409,7 +465,7 @@ class DSDriver:
         raise NotImplementedError("DSConnection function not available")
 
     @classmethod
-    def load_class(cls, name: str) -> any:
+    def load_class(cls, name: str) -> type["DSDriver"]:
         """
         Load a class from its fully qualified name (dot separated).
 

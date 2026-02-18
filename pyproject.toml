@@ -1,6 +1,6 @@
 [project]
 name = "datashield"
-version = "0.2.0"
+version = "0.3.0"
 description = "DataSHIELD Client Interface in Python."
 authors = [
     {name = "Yannick Marcon", email = "yannick.marcon@obiba.org"}
@@ -22,7 +22,10 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
 ]
-dependencies = []
+dependencies = [
+    "pydantic>=2.0",
+    "PyYAML>=6.0",
+]
 
 [project.optional-dependencies]
 test = [
