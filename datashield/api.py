@@ -3,7 +3,7 @@ DataSHIELD API.
 """
 
 import logging
-from datashield.interface import DSLoginInfo, DSConnection, DSDriver, DSError
+from datashield.interface import DSConfig, DSLoginInfo, DSConnection, DSDriver, DSError
 import time
 
 
@@ -12,8 +12,24 @@ class DSLoginBuilder:
     Helper class to formalize DataSHIELD login arguments for a set of servers.
     """
 
-    def __init__(self):
+    def __init__(self, names: list[str] = None):
+        """Create a builder, optionally loading login information from configuration files
+        for the specified server names.
+
+        :param names: The list of server names to load from configuration files, if any. If not defined,
+            no login information will be loaded from configuration files.
+        """
         self.items: list[DSLoginInfo] = []
+        # load login information from configuration files, in order of precedence
+        if names is not None and len(names) > 0:
+            config = DSConfig.load()
+            name_set = set(names)
+            if config.servers:
+                items = [x for x in config.servers if x.name in name_set]
+                if len(items) == 0:
+                    logging.warning(f"No matching server names found in configuration for: {', '.join(names)}")
+                else:
+                    self.items.extend(items)
 
     def add(
         self,
@@ -46,7 +62,9 @@ class DSLoginBuilder:
             raise ValueError(f"Server name must be unique: {name}")
         if user is None and token is None:
             raise ValueError("Either user or token must be provided")
-        self.items.append(DSLoginInfo(name, url, user, password, token, profile, driver))
+        self.items.append(
+            DSLoginInfo(name=name, url=url, user=user, password=password, token=token, profile=profile, driver=driver)
+        )
         return self
 
     def remove(self, name: str):
@@ -109,7 +127,7 @@ class DSSession:
                     raise e
         if self.has_errors():
             for name in self.errors:
-                print(f"Connection to {name} has failed")
+                logging.error(f"Connection to {name} has failed")
 
     def close(self, save: str = None) -> None:
         """

@@ -3,31 +3,97 @@ Classes to be implemented for each data repository type.
 """
 
 import importlib
+import logging
+import os
+import yaml
+from pydantic import BaseModel, Field, model_validator
+
+# Default configuration file paths to look for DataSHIELD login information, in order of precedence
+CONFIG_FILES = ["~/.config/datashield/config.yaml", "./.datashield/config.yaml"]
 
 
-class DSLoginInfo:
+class DSLoginInfo(BaseModel):
     """
     Helper class with DataSHIELD login details.
     """
 
-    def __init__(
-        self,
-        name: str,
-        url: str,
-        user: str = None,
-        password: str = None,
-        token: str = None,
-        profile: str = "default",
-        driver: str = "datashield_opal.OpalDriver",
-    ):
-        self.items = []
-        self.name = name
-        self.url = url
-        self.user = user
-        self.password = password
-        self.token = token
-        self.profile = profile if profile is not None else "default"
-        self.driver = driver if driver is not None else "datashield_opal.OpalDriver"
+    name: str
+    url: str
+    user: str | None = None
+    password: str | None = None
+    token: str | None = None
+    profile: str = "default"
+    driver: str = "datashield_opal.OpalDriver"
+
+    model_config = {"extra": "forbid"}
+
+    @model_validator(mode="after")
+    def validate_credentials(self) -> "DSLoginInfo":
+        if self.user is None and self.token is None:
+            raise ValueError("Either user or token must be provided")
+        return self
+
+
+class DSConfig(BaseModel):
+    """
+    Helper class with DataSHIELD configuration details.
+    """
+
+    servers: list[DSLoginInfo] = Field(default_factory=list)
+
+    model_config = {"extra": "forbid"}
+
+    @classmethod
+    def load(cls) -> "DSConfig":
+        """
+        Load the DataSHIELD configuration from the default configuration files.
+        Each file must contain a list of servers with their login details.
+        All readable configuration files listed in ``CONFIG_FILES`` are processed in
+        order. Their configurations are merged, with servers identified by their
+        ``name`` field. If the same server name appears in multiple files, the
+        definition from the later file in the list takes precedence and replaces
+        the earlier one. Servers that are only present in earlier files are kept.
+
+        :return: The DataSHIELD configuration object
+        """
+        merged_config = None
+        for config_file in CONFIG_FILES:
+            try:
+                # check file exists and is readable, if not, silently ignore
+                path = os.path.expanduser(config_file)
+                if not os.path.exists(path):
+                    continue
+                if not os.access(path, os.R_OK):
+                    continue
+                config = cls.load_from_file(path)
+                if merged_config is None:
+                    merged_config = config
+                else:
+                    # merge servers by name, new ones replacing existing ones, and keep the rest of existing ones
+                    existing_servers = {x.name: x for x in merged_config.servers}
+                    for server in config.servers:
+                        existing_servers[server.name] = server
+                    merged_config.servers = list(existing_servers.values())
+            except Exception:
+                # log and ignore errors, e.g. file not found or invalid format
+                logging.error(f"Failed to load login information from {config_file}")
+        return merged_config if merged_config else cls()
+
+    @classmethod
+    def load_from_file(cls, file: str) -> "DSConfig":
+        """
+        Load the DataSHIELD configuration from a YAML file. The file must contain a list of servers with their login details.
+
+        :param file: The path to the YAML file containing the DataSHIELD configuration
+        :return: The DataSHIELD configuration object
+        """
+        with open(file) as f:
+            config_data = yaml.safe_load(f)
+
+        if config_data is None:
+            config_data = {}
+
+        return cls.model_validate(config_data)
 
 
 class DSResult:
@@ -409,7 +475,7 @@ class DSDriver:
         raise NotImplementedError("DSConnection function not available")
 
     @classmethod
-    def load_class(cls, name: str) -> any:
+    def load_class(cls, name: str) -> type["DSDriver"]:
         """
         Load a class from its fully qualified name (dot separated).
 
