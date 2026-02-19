@@ -6,7 +6,7 @@ import importlib
 import logging
 import os
 import yaml
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 # Default configuration file paths to look for DataSHIELD login information, in order of precedence
 CONFIG_FILES = ["~/.config/datashield/config.yaml", "./.datashield/config.yaml"]
@@ -27,6 +27,12 @@ class DSLoginInfo(BaseModel):
 
     model_config = {"extra": "forbid"}
 
+    @model_validator(mode="after")
+    def validate_credentials(self) -> "DSLoginInfo":
+        if self.user is None and self.token is None:
+            raise ValueError("Either user or token must be provided")
+        return self
+
 
 class DSConfig(BaseModel):
     """
@@ -40,10 +46,13 @@ class DSConfig(BaseModel):
     @classmethod
     def load(cls) -> "DSConfig":
         """
-        Load the DataSHIELD configuration from default configuration files. The file must contain
-        a list of servers with their login details. The configuration from the first file found will be loaded,
-        in order of precedence. If multiple files are found, the configurations will be merged, with new server
-        details replacing existing ones by name.
+        Load the DataSHIELD configuration from the default configuration files.
+        Each file must contain a list of servers with their login details.
+        All readable configuration files listed in ``CONFIG_FILES`` are processed in
+        order. Their configurations are merged, with servers identified by their
+        ``name`` field. If the same server name appears in multiple files, the
+        definition from the later file in the list takes precedence and replaces
+        the earlier one. Servers that are only present in earlier files are kept.
 
         :return: The DataSHIELD configuration object
         """
@@ -51,11 +60,12 @@ class DSConfig(BaseModel):
         for config_file in CONFIG_FILES:
             try:
                 # check file exists and is readable, if not, silently ignore
-                if not os.path.exists(config_file):
+                path = os.path.expanduser(config_file)
+                if not os.path.exists(path):
                     continue
-                if not os.access(config_file, os.R_OK):
+                if not os.access(path, os.R_OK):
                     continue
-                config = cls.load_from_file(config_file)
+                config = cls.load_from_file(path)
                 if merged_config is None:
                     merged_config = config
                 else:
@@ -64,9 +74,9 @@ class DSConfig(BaseModel):
                     for server in config.servers:
                         existing_servers[server.name] = server
                     merged_config.servers = list(existing_servers.values())
-            except Exception as e:
-                # silently ignore errors, e.g. file not found or invalid format
-                logging.error(f"Failed to load login information from {config_file}: {e}")
+            except Exception:
+                # log and ignore errors, e.g. file not found or invalid format
+                logging.error(f"Failed to load login information from {config_file}")
         return merged_config if merged_config else cls()
 
     @classmethod

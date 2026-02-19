@@ -23,8 +23,9 @@ class DSLoginBuilder:
         # load login information from configuration files, in order of precedence
         if names is not None and len(names) > 0:
             config = DSConfig.load()
+            name_set = set(names)
             if config.servers:
-                items = [x for x in config.servers if x.name in names]
+                items = [x for x in config.servers if x.name in name_set]
                 if len(items) == 0:
                     logging.warning(f"No matching server names found in configuration for: {', '.join(names)}")
                 else:
