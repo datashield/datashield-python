@@ -203,7 +203,7 @@ class DSSession:
 
         :param table: The default name of the table to list variables for
         :param tables: The name of the table to list variables for, per server name. If not defined, 'table' is used.
-        :return: The available variable names from the data repository, for a given table, per remote server name
+        :return: The available variables from the data repository, for a given table, per remote server name
         """
         rval = {}
         for conn in self.conns:

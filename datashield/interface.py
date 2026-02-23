@@ -228,7 +228,7 @@ class DSConnection:
         List available variables for a given table from the data repository.
 
         :param table: The name of the table to list variables for
-        :return: The list of available variable names for the given table
+        :return: The list of available variables for the given table
         """
         raise NotImplementedError("DSConnection function not available")
 
