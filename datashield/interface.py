@@ -243,13 +243,13 @@ class DSConnection:
         """
         raise NotImplementedError("DSConnection function not available")
 
-    def search_variables(self, query: str) -> list:
+    def search_variables(self, query: str) -> dict:
         """
         Search for variable names matching a given query across all tables in the data repository.
 
         :param query: The query to search for in variable names, e.g., a full-text search and/or structured
             query (based on taxonomy terms), depending on the data repository's capabilities
-        :return: The list of variable names matching the given query across all tables
+        :return: The search result for variables matching the given query across all tables
         """
         raise NotImplementedError("DSConnection function not available")
 
