@@ -1,6 +1,10 @@
 install:
 	uv sync --all-extras
 
+update:
+	rm uv.lock
+	uv sync
+
 test:
 	uv run --all-extras pytest
 
