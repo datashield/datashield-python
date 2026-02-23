@@ -194,6 +194,14 @@ class DSConnection:
     Connection class to a DataSHIELD server.
     """
 
+    def get_name(self) -> str:
+        """
+        Get the name of the connection, which is typically the name of the server or data repository.
+
+        :return: The name of the connection
+        """
+        raise NotImplementedError("DSConnection function not available")
+
     #
     # Content listing
     #
@@ -212,6 +220,36 @@ class DSConnection:
 
         :param name: The name of the table to check
         :return: Whether a table with provided name exists in the data repository
+        """
+        raise NotImplementedError("DSConnection function not available")
+
+    def list_table_variables(self, table: str) -> list:
+        """
+        List available variables for a given table from the data repository.
+
+        :param table: The name of the table to list variables for
+        :return: The list of available variable names for the given table
+        """
+        raise NotImplementedError("DSConnection function not available")
+
+    def list_taxonomies(self) -> list:
+        """
+        List available taxonomies from the data repository. A taxonomy is a hierarchical structure of vocabulary
+        terms that can be used to annotate variables in the data repository.
+        Depending on the data repository's capabilities, taxonomies can be used to perform structured
+        queries when searching for variables.
+
+        :return: The list of available taxonomy names
+        """
+        raise NotImplementedError("DSConnection function not available")
+
+    def search_variables(self, query: str) -> list:
+        """
+        Search for variable names matching a given query across all tables in the data repository.
+
+        :param query: The query to search for in variable names, e.g., a full-text search and/or structured
+            query (based on taxonomy terms), depending on the data repository's capabilities
+        :return: The list of variable names matching the given query across all tables
         """
         raise NotImplementedError("DSConnection function not available")
 
