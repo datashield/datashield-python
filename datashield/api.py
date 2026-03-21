@@ -137,6 +137,8 @@ class DSSession:
         :param conn_names: The optional list of connection names to close. If not defined, all opened connections are closed.
         """
         self.errors = {}
+        if not self.conns:
+            return
         selected_conns = self._get_selected_connections(conn_names)
         selected_names = {conn.get_name() for conn in selected_conns}
         for conn in selected_conns:
@@ -158,7 +160,7 @@ class DSSession:
 
         :return: True if some connections were opened, False otherwise
         """
-        return len(self.conns) > 0
+        return self.conns and len(self.conns) > 0
 
     def get_connection_names(self) -> list[str]:
         """
@@ -166,7 +168,10 @@ class DSSession:
 
         :return: The list of opened connection names
         """
-        return [conn.get_name() for conn in self.conns]
+        if self.conns:
+            return [conn.get_name() for conn in self.conns]
+        else:
+            return []
 
     def has_errors(self) -> bool:
         """
@@ -372,7 +377,7 @@ class DSSession:
         """
         rval = {}
         self._init_errors()
-        if len(self.conns) == 0:
+        if not self.conns or len(self.conns) == 0:
             return rval
 
         started_conns = []
@@ -422,7 +427,7 @@ class DSSession:
         if len(excluded_conns) > 0:
             logging.error(f"Some sessions have been excluded due to errors: {', '.join(excluded_conns)}")
             self.conns = [conn for conn in self.conns if conn.get_name() not in excluded_conns]
-        if len(self.conns) == len(excluded_conns):
+        if len(self.conns) == 0:
             raise DSError("No sessions could be started successfully.")
         return rval
 
