@@ -2,7 +2,7 @@ install:
 	uv sync --all-extras
 
 update:
-	rm uv.lock
+	rm -f uv.lock
 	uv sync
 
 test:

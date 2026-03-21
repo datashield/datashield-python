@@ -371,7 +371,7 @@ class DSSession:
                 excluded_conns.append(conn.get_name())
 
         # check for session status and wait until all are started
-        for conn in [c for c in self.conns if c.name not in excluded_conns]:
+        for conn in [c for c in self.conns if c.get_name() not in excluded_conns]:
             try:
                 if conn.is_session_started():
                     started_conns.append(conn.get_name())
