@@ -19,7 +19,6 @@ class DSLoginBuilder:
         :param names: The list of server names to load from configuration files, if any. If not defined,
             no login information will be loaded from configuration files.
         """
-        self.id = str(uuid.uuid4())
         self.items: list[DSLoginInfo] = []
         # load login information from configuration files, in order of precedence
         if names is not None and len(names) > 0:
@@ -100,6 +99,7 @@ class DSSession:
         :param start_timeout: The maximum time in seconds to wait for R sessions to start, default is 300 seconds (5 minutes)
         :param start_delay: The delay in seconds between checking if R sessions are started, default is 0.1 seconds
         """
+        self.id = str(uuid.uuid4())
         self.logins = logins
         self.start_timeout = start_timeout
         self.start_delay = start_delay

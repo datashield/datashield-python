@@ -1,6 +1,6 @@
 [project]
 name = "datashield"
-version = "0.5.0"
+version = "0.5.1"
 description = "DataSHIELD Client Interface in Python."
 authors = [
     {name = "Yannick Marcon", email = "yannick.marcon@obiba.org"}
