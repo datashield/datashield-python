@@ -1,7 +1,7 @@
 """
 DataSHIELD API.
 """
-
+import uuid
 import logging
 from datashield.interface import DSConfig, DSLoginInfo, DSConnection, DSDriver, DSError
 import time
@@ -19,6 +19,7 @@ class DSLoginBuilder:
         :param names: The list of server names to load from configuration files, if any. If not defined,
             no login information will be loaded from configuration files.
         """
+        self.id = str(uuid.uuid4())
         self.items: list[DSLoginInfo] = []
         # load login information from configuration files, in order of precedence
         if names is not None and len(names) > 0:
